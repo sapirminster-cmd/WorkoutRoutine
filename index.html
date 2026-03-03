@@ -902,43 +902,41 @@ function allEntries() { return Object.values(S.history||{}).flat(); }
 function renderOverview() {
   const entries = allEntries();
   const now = new Date();
-
-  // Total volume
   const vol = entries.reduce((s,e)=>s+(parseFloat(e.weight)||0)*(e.reps||0),0);
 
-  // Avg duration
-  const durs = Object.values(S.durations||{});
-  const avgDur = durs.length ? Math.round(durs.reduce((a,b)=>a+b,0)/durs.length) : null;
+  const durVals = Object.values(S.durations||{});
+  const avgDur  = durVals.length ? Math.round(durVals.reduce((a,b)=>a+b,0)/durVals.length) : null;
 
-  // This month
-  const monthPfx = now.toISOString().slice(0,7);
-  const monthWo = Object.keys(S.history||{}).filter(d=>d.startsWith(monthPfx)).length;
+  const wkStart = (() => { const d=new Date(),m=new Date(d); m.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1)); return m.toISOString().slice(0,10); })();
+  const wkEnd   = new Date(new Date(wkStart).getTime()+6*864e5).toISOString().slice(0,10);
+  const wkWo    = Object.keys(S.history||{}).filter(d=>d>=wkStart&&d<=wkEnd).length;
+  const mnPfx   = now.toISOString().slice(0,7);
+  const mnWo    = Object.keys(S.history||{}).filter(d=>d.startsWith(mnPfx)).length;
 
   const el = document.getElementById('tab-overview');
   el.innerHTML = '';
 
-  // KPIs
   const kpiData = [
-    { val: S.totalWorkouts||0, lbl:'אימונים סה"כ',    color:'var(--accent)' },
-    { val: S.streak||0,        lbl:'רצף ימים 🔥',      color:'var(--sage)' },
-    { val: Math.round(vol).toLocaleString(), lbl:'נפח כולל (ק"ג)', color:'var(--gold)', sub:'משקל × חזרות' },
-    { val: S.totalSets||0,     lbl:'סטים בוצעו',      color:'var(--dim)' },
-    { val: avgDur ? avgDur+'\'':'—', lbl:'זמן ממוצע לאימון', color:'var(--dim)' },
-    { val: monthWo,            lbl:'אימונים החודש',    color:'var(--accent)' },
+    { val: S.streak||0,                     lbl:'\u05e8\u05e6\u05e3 \u05d9\u05de\u05d9\u05dd \ud83d\udd25', color:'var(--sage)'   },
+    { val: avgDur ? avgDur+"'" : '\u2014',  lbl:'\u05d6\u05de\u05df \u05de\u05de\u05d5\u05e6\u05e2 \u05dc\u05d0\u05d9\u05de\u05d5\u05df', color:'var(--dim)' },
+    { val: Math.round(vol).toLocaleString(), lbl:'\u05e0\u05e4\u05d7 \u05db\u05d5\u05dc\u05dc (\u05e7"\u05d2)', color:'var(--gold)', sub:'\u05de\u05e9\u05e7\u05dc \u00d7 \u05d7\u05d6\u05e8\u05d5\u05ea' },
+    { val: S.totalSets||0,                  lbl:'\u05e1\u05d8\u05d9\u05dd \u05d1\u05d5\u05e6\u05e2\u05d5',    color:'var(--dim)'    },
+    { val: wkWo,                            lbl:'\u05d0\u05d9\u05de\u05d5\u05e0\u05d9\u05dd \u05d4\u05e9\u05d1\u05d5\u05e2', color:'var(--accent)' },
+    { val: mnWo,                            lbl:'\u05d0\u05d9\u05de\u05d5\u05e0\u05d9\u05dd \u05d4\u05d7\u05d5\u05d3\u05e9', color:'var(--accent)' },
   ];
+
   const grid = document.createElement('div');
   grid.className = 'kpi-grid';
   kpiData.forEach(k => {
-    grid.innerHTML += `
-      <div class="kpi-card">
-        <div class="kpi-val" style="color:${k.color}">${k.val}</div>
-        <div class="kpi-lbl">${k.lbl}</div>
-        ${k.sub ? `<div class="kpi-sub">${k.sub}</div>` : ''}
-      </div>`;
+    grid.innerHTML +=
+      '<div class="kpi-card">' +
+        '<div class="kpi-val" style="color:' + k.color + '">' + k.val + '</div>' +
+        '<div class="kpi-lbl">' + k.lbl + '</div>' +
+        (k.sub ? '<div class="kpi-sub">' + k.sub + '</div>' : '') +
+      '</div>';
   });
   el.appendChild(grid);
 
-  // Weekly volume chart
   const weekVols = {};
   entries.forEach(e => {
     if (!e.reps||!e.weight) return;
@@ -947,56 +945,31 @@ function renderOverview() {
     const wk = m.toISOString().slice(0,10);
     weekVols[wk] = (weekVols[wk]||0) + (parseFloat(e.weight)*e.reps);
   });
-  const wks = Object.keys(weekVols).sort().slice(-6);
+  const wks  = Object.keys(weekVols).sort().slice(-6);
   const maxV = Math.max(...wks.map(w=>weekVols[w]),1);
-  const nowMon = (() => { const d=new Date(),m=new Date(d); m.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1)); return m.toISOString().slice(0,10); })();
 
   const volChart = document.createElement('div');
   volChart.className = 'chart-card';
-  volChart.innerHTML = '<div class="chart-title">נפח שבועי (ק"ג)</div><div class="bar-row" id="volBars"></div>';
+  volChart.innerHTML = '<div class="chart-title">\u05e0\u05e4\u05d7 \u05e9\u05d1\u05d5\u05e2\u05d9 (\u05e7"\u05d2)</div><div class="bar-row" id="volBars"></div>';
   el.appendChild(volChart);
 
   setTimeout(() => {
     const bars = document.getElementById('volBars');
     if (!bars) return;
-    if (!wks.length) { bars.innerHTML='<div style="color:var(--dim);font-size:12px;width:100%;text-align:center;padding:20px">עדיין אין נתונים 🌱</div>'; return; }
+    if (!wks.length) { bars.innerHTML='<div style="color:var(--dim);font-size:12px;width:100%;text-align:center;padding:20px">\u05e2\u05d3\u05d9\u05d9\u05df \u05d0\u05d9\u05df \u05e0\u05ea\u05d5\u05e0\u05d9\u05dd \ud83c\udf31</div>'; return; }
     wks.forEach((wk,i) => {
-      const v = weekVols[wk]||0;
-      const h = Math.round((v/maxV)*68);
-      const isNow = wk===nowMon;
+      const v=weekVols[wk]||0, h=Math.round((v/maxV)*68), isNow=wk===wkStart;
       const col = document.createElement('div');
       col.className = 'bar-col';
-      col.innerHTML = `
-        <div class="bar-val-lbl">${v>0?Math.round(v/1000)+'k':''}</div>
-        <div class="bar" style="height:${h}px;background:${isNow?'var(--accent)':'var(--s2)'};border:1px solid ${isNow?'var(--accent)':'var(--border)'}"></div>
-        <div class="bar-x-lbl">ש${i+1}</div>`;
+      col.innerHTML =
+        '<div class="bar-val-lbl">'+(v>0?Math.round(v/1000)+'k':'')+'</div>'+
+        '<div class="bar" style="height:'+h+'px;background:'+(isNow?'var(--accent)':'var(--s2)')+';border:1px solid '+(isNow?'var(--accent)':'var(--border)')+'"></div>'+
+        '<div class="bar-x-lbl">\u05e9'+(i+1)+'</div>';
       bars.appendChild(col);
     });
   }, 0);
 
-  // Heatmap
-  const hmCard = document.createElement('div');
-  hmCard.className = 'chart-card';
-  hmCard.innerHTML = '<div class="chart-title">פעילות — 28 ימים אחרונים</div><div class="heatmap" id="hmCells"></div>';
-  el.appendChild(hmCard);
-
-  setTimeout(() => {
-    const hm = document.getElementById('hmCells');
-    if (!hm) return;
-    const days = ['א','ב','ג','ד','ה','ו','ש'];
-    for (let i=27; i>=0; i--) {
-      const d = new Date(); d.setDate(d.getDate()-i);
-      const dk = d.toISOString().slice(0,10);
-      const cnt = (S.history?.[dk]||[]).length;
-      const lvl = cnt===0?0:cnt<5?1:cnt<15?2:3;
-      const cell = document.createElement('div');
-      cell.className = 'hm-cell' + (lvl?' hm-'+lvl:'');
-      cell.textContent = i===0?'★':days[d.getDay()];
-      hm.appendChild(cell);
-    }
-  }, 0);
 }
-
 function renderExercises() {
   const el = document.getElementById('tab-exercises');
   el.innerHTML = '';
@@ -1044,72 +1017,74 @@ function renderCalories() {
   const lastD = dates[dates.length-1];
   const lastV = lastD ? cal[lastD] : null;
 
-  // Weekly total
-  const now = new Date(), m = new Date(now);
-  m.setDate(now.getDate()-(now.getDay()===0?6:now.getDay()-1));
-  const wkS = m.toISOString().slice(0,10);
-  const wkE = new Date(m.getTime()+6*864e5).toISOString().slice(0,10);
-  const wkTotal = dates.filter(d=>d>=wkS&&d<=wkE).reduce((s,d)=>s+(cal[d]||0),0);
-  const mnPfx = now.toISOString().slice(0,7);
+  const now = new Date();
+  const wkStart = (() => {
+    const m = new Date(now);
+    m.setDate(now.getDate()-(now.getDay()===0?6:now.getDay()-1));
+    return m.toISOString().slice(0,10);
+  })();
+  const wkEnd   = new Date(new Date(wkStart).getTime()+6*864e5).toISOString().slice(0,10);
+  const mnPfx   = now.toISOString().slice(0,7);
+
+  const wkTotal = dates.filter(d=>d>=wkStart&&d<=wkEnd).reduce((s,d)=>s+(cal[d]||0),0);
   const mnTotal = dates.filter(d=>d.startsWith(mnPfx)).reduce((s,d)=>s+(cal[d]||0),0);
   const allVals = dates.map(d=>cal[d]).filter(Boolean);
-  const avg = allVals.length ? Math.round(allVals.reduce((a,b)=>a+b,0)/allVals.length) : 0;
+  const avg     = allVals.length ? Math.round(allVals.reduce((a,b)=>a+b,0)/allVals.length) : 0;
 
-  el.innerHTML = `
-    <div class="cal-card">
-      <div class="sec-title" style="margin-bottom:10px">רשמי קלוריות לאימון</div>
-      <div class="cal-entry-row">
-        <input class="cal-input" type="number" id="calIn" placeholder='קק"ל'>
-        <button class="cal-save" onclick="saveCal()">שמור</button>
-      </div>
-      ${lastV ? `<div class="cal-last">אחרון (${lastD?.slice(5).replace('-','/')}): <b>${lastV} קק"ל</b></div>` : ''}
-    </div>
-    <div class="kpi-grid">
-      <div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">${lastV||'—'}</div><div class="kpi-lbl">אימון אחרון</div></div>
-      <div class="kpi-card"><div class="kpi-val" style="color:var(--accent)">${wkTotal||'—'}</div><div class="kpi-lbl">שבוע זה</div></div>
-      <div class="kpi-card"><div class="kpi-val" style="color:var(--sage)">${mnTotal||'—'}</div><div class="kpi-lbl">החודש</div></div>
-      <div class="kpi-card"><div class="kpi-val" style="color:var(--dim)">${avg||'—'}</div><div class="kpi-lbl">ממוצע לאימון</div></div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-title">קלוריות לאימון — אחרונים</div>
-      <div class="bar-row" id="calBars"></div>
-    </div>`;
+  const fmt = v => v ? v.toLocaleString() + ' קק"ל' : '—';
+
+  el.innerHTML =
+    '<div class="kpi-grid">' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">' + (lastV||'—') + '</div><div class="kpi-lbl">אימון אחרון' + (lastD?' ('+lastD.slice(5).replace('-','/')+')':'') + '</div></div>' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--accent)">' + (wkTotal||'—') + '</div><div class="kpi-lbl">שבוע זה</div></div>' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--sage)">'   + (mnTotal||'—') + '</div><div class="kpi-lbl">החודש</div></div>' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--dim)">'    + (avg||'—')    + '</div><div class="kpi-lbl">ממוצע לאימון</div></div>' +
+    '</div>' +
+    '<div class="chart-card"><div class="chart-title">קלוריות לאימון — אחרונים</div><div class="bar-row" id="calBars"></div></div>';
 
   setTimeout(() => {
     const bars = document.getElementById('calBars');
     if (!bars) return;
-    const calDates = dates.slice(-10);
-    if (!calDates.length) { bars.innerHTML='<div style="color:var(--dim);font-size:12px;width:100%;text-align:center;padding:20px">עדיין אין נתונים 🌱</div>'; return; }
-    const maxC = Math.max(...calDates.map(d=>cal[d]||0),1);
+    const calDates = dates.slice(-8);
+    if (!calDates.length) {
+      bars.innerHTML = '<div style="color:var(--dim);font-size:12px;width:100%;text-align:center;padding:20px">עדיין אין נתונים 🌱</div>';
+      return;
+    }
+    const maxC = Math.max(...calDates.map(d=>cal[d]||0), 1);
     calDates.forEach(d => {
       const v = cal[d]||0, h = Math.round((v/maxC)*68);
       const col = document.createElement('div');
       col.className = 'bar-col';
-      col.innerHTML = `
-        <div class="bar-val-lbl">${v}</div>
-        <div class="bar" style="height:${h}px;background:var(--gold);opacity:0.75"></div>
-        <div class="bar-x-lbl">${d.slice(5).replace('-','/')}</div>`;
+      col.innerHTML =
+        '<div class="bar-val-lbl">' + v + '</div>' +
+        '<div class="bar" style="height:' + h + 'px;background:var(--gold);opacity:0.8;border-radius:4px 4px 0 0"></div>' +
+        '<div class="bar-x-lbl">' + d.slice(5).replace('-','/') + '</div>';
       bars.appendChild(col);
     });
   }, 0);
 }
 
-function saveCal() {
-  const val = parseInt(document.getElementById('calIn')?.value);
-  if (!val||val<1) return;
-  if (!S.calories) S.calories = {};
-  S.calories[todayKey()] = val;
-  saveS();
-  renderCalories();
-}
-
 function resetWeek() {
-  if (!confirm('לאפס נתוני השבוע?')) return;
+  if (!confirm('לאפס את סימוני השבוע הנוכחי?\nהנתונים ההיסטוריים נשמרים.')) return;
   const wk = weekKey();
   delete S[wk];
+  // Reset session data for current workouts only (keep history intact)
   Object.keys(S).forEach(k => { if (k.endsWith('_s')) delete S[k]; });
   saveS();
   renderWeek();
+}
+
+function autoResetWeek() {
+  // Auto-reset: if stored week key differs from current, clear done flags silently
+  const stored = S._lastWeek;
+  const current = weekKey();
+  if (stored && stored !== current) {
+    // Archive old week session data (keep history)
+    Object.keys(S).forEach(k => { if (k.endsWith('_s')) delete S[k]; });
+    delete S[stored];
+  }
+  S._lastWeek = current;
+  saveS();
 }
 
 // ══════════════════════════════════════════════════════
@@ -1195,7 +1170,8 @@ function init() {
   const now = new Date();
   document.getElementById('hdrDate').textContent =
     `${DAYS[now.getDay()]}, ${now.getDate()} ב${MONTHS[now.getMonth()]}`;
-  document.getElementById('hdrStreak').textContent = S.streak ? `🔥 ${S.streak}` : '';
+  document.getElementById('hdrStreak').textContent = S.streak ? '🔥 ' + S.streak : '';
+  autoResetWeek();
   renderWeek();
 }
 
