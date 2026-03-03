@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#f0ece6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="כוח + קראטה">
+<link rel="manifest" href="manifest.json">
+<title>כוח + קראטה</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f0ece6;
+  --s1:       #e8e2d8;
+  --s2:       #ddd6c8;
+  --border:   #c8bcaa;
+  --accent:   #b5622a;
+  --sage:     #5a8050;
+  --gold:     #a07820;
+  --text:     #2e2418;
+  --dim:      #7a6a54;
+  --r: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; font-family: 'Heebo', sans-serif; background: var(--bg); color: var(--text); direction: rtl; }
+
+/* ─ HEADER ─ */
+.header {
+  background: var(--s1); border-bottom: 1px solid var(--border);
+  padding: 12px 18px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.logo { font-size: 18px; font-weight: 900; }
+.logo span { color: var(--accent); }
+.header-date { font-size: 11px; color: var(--dim); margin-top: 1px; }
+
+/* ─ NAV ─ */
+.nav {
+  display: flex; background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 57px; z-index: 99;
+}
+.nav-btn {
+  flex: 1; padding: 10px; background: none; border: none;
+  border-bottom: 2px solid transparent;
+  font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 700;
+  color: var(--dim); cursor: pointer; transition: all 0.2s;
+}
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ─ MAIN ─ */
+.main { padding: 14px; max-width: 600px; margin: 0 auto; }
+.view { display: none; }
+.view.active { display: block; }
+
+/* ─ SECTION HEADER ─ */
+.sec-title {
+  font-size: 11px; font-weight: 700; color: var(--dim);
+  text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+}
+
+/* ─ WEEK GRID ─ */
+.week-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+
+.day-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 13px 12px;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color 0.2s, background 0.15s;
+  -webkit-user-select: none; user-select: none;
+}
+.day-card:active { background: var(--s2); }
+.day-card.clickable:hover { border-color: var(--accent); }
+.day-card.rest { opacity: 0.45; cursor: default; }
+.day-card.done { border-color: var(--sage); }
+
+.day-pip {
+  position: absolute; top: 8px; left: 8px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--sage); color: #fff;
+  font-size: 10px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.3s;
+}
+.day-card.done .day-pip { opacity: 1; }
+
+.day-name  { font-size: 14px; font-weight: 900; margin-bottom: 2px; }
+.day-label { font-size: 10px; color: var(--dim); margin-bottom: 8px; }
+.day-tag {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 20px; font-size: 10px; font-weight: 700;
+}
+.tag-lower    { background: rgba(181,98,42,0.14); color: var(--accent); }
+.tag-upper    { background: rgba(160,120,32,0.14); color: var(--gold); }
+.tag-karate   { background: rgba(90,128,80,0.14);  color: var(--sage); }
+.tag-rest     { background: rgba(122,106,84,0.1);  color: var(--dim); }
+.tag-optional { background: rgba(160,120,32,0.14); color: var(--gold); }
+
+/* Summary bar */
+.summary {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 13px 16px;
+  display: flex; justify-content: space-around;
+}
+.sum-item { text-align: center; }
+.sum-val { font-size: 22px; font-weight: 900; line-height: 1; }
+.sum-lbl { font-size: 10px; color: var(--dim); margin-top: 3px; }
+
+/* ─ WORKOUT VIEW ─ */
+.back-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: none; border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 12px;
+  font-family: 'Heebo', sans-serif; font-size: 12px; font-weight: 600;
+  color: var(--dim); cursor: pointer; margin-bottom: 12px;
+  transition: all 0.2s;
+}
+.back-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.wo-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px; margin-bottom: 14px;
+}
+.wo-title { font-size: 20px; font-weight: 900; margin-bottom: 8px; }
+.wo-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.wo-pill {
+  font-size: 11px; color: var(--dim);
+  background: var(--s2); padding: 3px 9px;
+  border-radius: 20px; font-weight: 600;
+}
+.prog-bar-wrap { height: 4px; background: var(--s2); border-radius: 2px; overflow: hidden; }
+.prog-bar-fill {
+  height: 100%; border-radius: 2px;
+  background: linear-gradient(90deg, var(--accent), #d4824a);
+  transition: width 0.4s ease;
+}
+
+/* ─ EXERCISE CARD ─ */
+.ex-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); margin-bottom: 8px; overflow: hidden;
+  transition: border-color 0.2s;
+  animation: fadeUp 0.25s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ex-card:nth-child(2) { animation-delay: .04s }
+.ex-card:nth-child(3) { animation-delay: .08s }
+.ex-card:nth-child(4) { animation-delay: .12s }
+.ex-card:nth-child(5) { animation-delay: .16s }
+.ex-card:nth-child(6) { animation-delay: .20s }
+.ex-card:nth-child(7) { animation-delay: .24s }
+.ex-card.ex-open  { border-color: var(--accent); }
+.ex-card.ex-done  { border-color: var(--sage); opacity: 0.65; }
+
+.ex-head {
+  padding: 12px 14px; display: flex; align-items: center;
+  gap: 10px; cursor: pointer; -webkit-user-select: none; user-select: none;
+}
+.ex-num {
+  width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  background: var(--s2); display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; color: var(--dim);
+  transition: all 0.2s;
+}
+.ex-card.ex-open .ex-num { background: rgba(181,98,42,0.18); color: var(--accent); }
+.ex-card.ex-done .ex-num { background: var(--sage); color: #fff; }
+
+.ex-info { flex: 1; min-width: 0; }
+.ex-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.ex-chip  { font-size: 10px; color: var(--dim); background: var(--s2); padding: 2px 6px; border-radius: 4px; }
+
+.ex-chevron { color: var(--dim); transition: transform 0.2s; flex-shrink: 0; }
+.ex-card.ex-open .ex-chevron { transform: rotate(180deg); }
+
+.ex-body {
+  display: none; border-top: 1px solid var(--border);
+  padding: 12px 14px 14px;
+}
+.ex-card.ex-open .ex-body { display: block; }
+
+.ex-desc { font-size: 12px; color: var(--dim); line-height: 1.7; margin-bottom: 12px; }
+
+/* Weight input */
+.wt-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.wt-label { font-size: 12px; color: var(--dim); }
+.wt-input {
+  width: 72px; padding: 7px 8px; text-align: center;
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 16px; font-weight: 700;
+  transition: border-color 0.2s;
+}
+.wt-input:focus { outline: none; border-color: var(--accent); }
+.wt-unit { font-size: 12px; color: var(--dim); }
+.wt-prev { font-size: 11px; color: var(--dim); margin-right: 4px; }
+.wt-prev b { color: var(--gold); }
+
+/* Sets */
+.sets-lbl { font-size: 10px; color: var(--dim); margin-bottom: 6px; }
+.sets-row  { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.set-dot {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; color: var(--dim);
+  cursor: pointer; transition: all 0.15s; user-select: none;
+  flex-direction: column; line-height: 1.1;
+}
+.set-dot:active { transform: scale(0.88); }
+.set-dot.s-next { border-color: var(--gold); color: var(--gold); }
+.set-dot.s-done { background: var(--accent); border-color: var(--accent); color: #fff; }
+.set-sub { font-size: 8px; opacity: 0.85; }
+
+
+
+/* Complete button */
+.done-btn {
+  width: 100%; padding: 10px; border-radius: 10px;
+  background: var(--s2); border: 1px solid var(--border);
+  color: var(--dim); font-family: 'Heebo', sans-serif;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  transition: all 0.2s;
+}
+.done-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ex-card.ex-done .done-btn { background: rgba(90,128,80,0.1); color: var(--sage); border-color: rgba(90,128,80,0.3); }
+
+/* Finish banner */
+.finish-banner {
+  background: linear-gradient(135deg, rgba(181,98,42,0.1), rgba(90,128,80,0.08));
+  border: 1px solid rgba(181,98,42,0.3);
+  border-radius: var(--r); padding: 20px; text-align: center;
+  margin-bottom: 14px; display: none;
+}
+.finish-banner.show { display: block; animation: fadeUp 0.3s ease; }
+.finish-icon  { font-size: 32px; margin-bottom: 6px; }
+.finish-title { font-size: 18px; font-weight: 900; color: var(--accent); }
+.finish-sub   { font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+
+
+/* ─ SET LOG MODAL ─ */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(46,36,24,0.5);
+  z-index: 300; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  backdrop-filter: blur(3px);
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px;
+  width: 100%; max-width: 300px;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:scale(0.9) translateY(8px); }
+  to   { opacity:1; transform:scale(1) translateY(0); }
+}
+.modal-title { font-size: 14px; font-weight: 900; margin-bottom: 2px; }
+.modal-sub   { font-size: 11px; color: var(--dim); margin-bottom: 14px; }
+.modal-label { font-size: 11px; color: var(--dim); font-weight: 700; margin-bottom: 6px; display: block; }
+.modal-input {
+  width: 100%; padding: 10px; text-align: center;
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 22px; font-weight: 900;
+  transition: border-color 0.2s;
+}
+.modal-input:focus { outline: none; border-color: var(--accent); }
+.modal-btns { display: flex; gap: 8px; margin-top: 14px; }
+.modal-ok {
+  flex: 1; padding: 11px; background: var(--accent); color: #fff;
+  border: none; border-radius: 10px;
+  font-family: 'Heebo', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.modal-cancel {
+  padding: 11px 16px; background: var(--s2);
+  border: 1px solid var(--border); border-radius: 10px;
+  font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 600;
+  color: var(--dim); cursor: pointer;
+}
+
+/* ─ PROGRESS VIEW ─ */
+.stats-tabs {
+  display: flex; border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--border); margin-bottom: 14px;
+}
+.stats-tab {
+  flex: 1; padding: 9px; background: var(--s1); border: none;
+  font-family: 'Heebo', sans-serif; font-size: 12px; font-weight: 700;
+  color: var(--dim); cursor: pointer; transition: all 0.2s;
+}
+.stats-tab.active { background: var(--accent); color: #fff; }
+
+.kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.kpi-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 13px; text-align: center;
+}
+.kpi-val { font-size: 26px; font-weight: 900; line-height: 1; margin-bottom: 3px; }
+.kpi-lbl { font-size: 10px; color: var(--dim); }
+.kpi-sub { font-size: 9px; color: var(--dim); opacity: 0.7; margin-top: 2px; }
+
+.chart-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px; margin-bottom: 12px;
+}
+.chart-title { font-size: 11px; font-weight: 700; color: var(--dim); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+.bar-row { display: flex; align-items: flex-end; gap: 4px; height: 80px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 3px; transition: height 0.4s ease; }
+.bar-val-lbl { font-size: 9px; color: var(--dim); font-weight: 700; }
+.bar-x-lbl   { font-size: 9px; color: var(--dim); }
+
+.heatmap { display: flex; gap: 3px; flex-wrap: wrap; }
+.hm-cell {
+  width: 26px; height: 26px; border-radius: 4px;
+  background: var(--s2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: var(--dim); font-weight: 700;
+}
+.hm-1 { background: rgba(181,98,42,0.18); color: var(--accent); }
+.hm-2 { background: rgba(181,98,42,0.42); color: var(--accent); }
+.hm-3 { background: var(--accent); color: #fff; }
+
+.ex-stat-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+}
+.ex-stat-name { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+.ex-stat-row  { display: flex; gap: 6px; flex-wrap: wrap; }
+.ex-kpi {
+  flex: 1; min-width: 55px; text-align: center;
+  background: var(--s2); border-radius: 8px; padding: 7px 6px;
+}
+.ex-kpi-v { font-size: 16px; font-weight: 900; line-height: 1; }
+.ex-kpi-l { font-size: 9px; color: var(--dim); margin-top: 2px; }
+
+/* Cal input */
+.cal-card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px; margin-bottom: 14px;
+}
+.cal-entry-row { display: flex; gap: 8px; align-items: center; }
+.cal-input {
+  flex: 1; padding: 9px; text-align: center;
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text);
+  font-family: 'Heebo', sans-serif; font-size: 18px; font-weight: 700;
+}
+.cal-input:focus { outline: none; border-color: var(--accent); }
+.cal-save {
+  padding: 9px 16px; background: var(--accent); color: #fff;
+  border: none; border-radius: 8px;
+  font-family: 'Heebo', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer;
+}
+.cal-last { font-size: 11px; color: var(--dim); margin-top: 8px; }
+.cal-last b { color: var(--gold); }
+
+.reset-btn {
+  display: block; margin: 16px auto 0;
+  background: none; border: 1px solid var(--border);
+  color: var(--dim); padding: 8px 18px;
+  border-radius: 8px; cursor: pointer;
+  font-family: 'Heebo', sans-serif; font-size: 12px;
+  transition: all 0.2s;
+}
+.reset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="logo">כוח<span>+</span>קראטה</div>
+    <div class="header-date" id="hdrDate"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="hdrStreak" style="font-size:12px;color:var(--dim)"></div>
+    <button onclick="showView('settings')" style="background:none;border:none;font-size:20px;cursor:pointer;padding:4px;color:var(--dim)">⚙️</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showView('week')">לוח שבועי</button>
+  <button class="nav-btn" onclick="showView('progress')">התקדמות</button>
+</div>
+
+
+
+<!-- SET MODAL -->
+<div class="modal-overlay" id="setModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub"   id="modalSub"></div>
+    <label class="modal-label" id="modalLabel"></label>
+    <input class="modal-input" id="modalInput" type="number" min="1">
+    <div class="modal-btns">
+      <button class="modal-ok"     onclick="confirmSet()">✓ אישור</button>
+      <button class="modal-cancel" onclick="closeModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- ══ WEEK VIEW ══ -->
+  <div class="view active" id="view-week">
+    <div style="font-size:17px;font-weight:900;margin-bottom:12px">השבוע שלי 💪</div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div class="summary">
+      <div class="sum-item">
+        <div class="sum-val" style="color:var(--accent)" id="sumWo">0</div>
+        <div class="sum-lbl">אימונים</div>
+      </div>
+      <div class="sum-item">
+        <div class="sum-val" style="color:var(--gold)" id="sumVol">0</div>
+        <div class="sum-lbl">נפח (ק"ג)</div>
+      </div>
+      <div class="sum-item">
+        <div class="sum-val" style="color:var(--sage)" id="sumStr">0</div>
+        <div class="sum-lbl">רצף ימים</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ WORKOUT VIEW ══ -->
+  <div class="view" id="view-workout">
+    <button class="back-btn" onclick="goBack()">← חזרה</button>
+    <div class="wo-card" id="woCard"></div>
+    <!-- כרטיס משך וקלוריות — תמיד מוצג -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:10px">פרטי האימון</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="wt-row" style="gap:6px;margin-bottom:0">
+          <span class="wt-label">משך:</span>
+          <input class="wt-input" type="number" id="woDur" placeholder="55" style="width:64px">
+          <span class="wt-unit">דק'</span>
+        </div>
+        <div class="wt-row" style="gap:6px;margin-bottom:0">
+          <span class="wt-label">קלוריות:</span>
+          <input class="wt-input" type="number" id="woCal" placeholder="—" style="width:64px">
+          <span class="wt-unit">קק"ל</span>
+        </div>
+        <button onclick="saveWoExtras()" id="woSaveBtn" style="padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;cursor:pointer">שמור</button>
+      </div>
+    </div>
+    <div class="finish-banner" id="finishBanner">
+      <div class="finish-icon">🌿</div>
+      <div class="finish-title">אימון הושלם!</div>
+      <div class="finish-sub" id="finishSub"></div>
+    </div>
+    <div id="exList"></div>
+  </div>
+
+
+  <!-- ══ ACTIVITY VIEW ══ -->
+  <div class="view" id="view-activity">
+    <button class="back-btn" onclick="goBack()">← חזרה</button>
+    <div class="wo-card" id="actHeader"></div>
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:14px">פרטי האימון</div>
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="wt-row">
+          <span class="wt-label" style="min-width:90px">משך האימון:</span>
+          <input class="wt-input" type="number" id="actDur" placeholder="60" style="width:70px">
+          <span class="wt-unit">דק'</span>
+        </div>
+        <div class="wt-row">
+          <span class="wt-label" style="min-width:90px">קלוריות:</span>
+          <input class="wt-input" type="number" id="actCal" placeholder="—" style="width:70px">
+          <span class="wt-unit">קק"ל</span>
+        </div>
+        <div class="wt-row">
+          <span class="wt-label" style="min-width:90px">הערה:</span>
+          <input class="wt-input" type="text" id="actNote" placeholder="..." style="width:130px;font-size:13px">
+        </div>
+      </div>
+    </div>
+    <button class="done-btn" id="actSaveBtn" onclick="saveActivity()" style="background:var(--sage);color:#fff;border-color:var(--sage)">
+      ✓ שמור אימון
+    </button>
+  </div>
+
+  <!-- ══ SETTINGS VIEW ══ -->
+  <div class="view" id="view-settings">
+    <div style="font-size:18px;font-weight:900;margin-bottom:20px;text-align:right">⚙️ הגדרות</div>
+
+    <!-- עריכת משקלים -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:12px">עריכת משקלים לתרגילים</div>
+      <div id="settingsWeights"></div>
+    </div>
+
+    <!-- עריכת נתון ספציפי -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:12px">עריכת נתון ספציפי</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="wt-row">
+          <span class="wt-label" style="min-width:80px">תאריך:</span>
+          <input class="wt-input" type="date" id="editDate" style="width:140px;font-size:13px">
+        </div>
+        <div class="wt-row">
+          <span class="wt-label" style="min-width:80px">קלוריות:</span>
+          <input class="wt-input" type="number" id="editCal" placeholder="—" style="width:80px">
+          <span class="wt-unit">קק"ל</span>
+        </div>
+        <div class="wt-row">
+          <span class="wt-label" style="min-width:80px">משך:</span>
+          <input class="wt-input" type="number" id="editDur" placeholder="—" style="width:80px">
+          <span class="wt-unit">דק'</span>
+        </div>
+        <button onclick="saveEditedEntry()" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;align-self:flex-end">שמור</button>
+        <div id="editMsg" style="font-size:12px;color:var(--sage);text-align:right;min-height:16px"></div>
+      </div>
+    </div>
+
+    <!-- נתונים פיזיולוגיים -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:12px">📏 נתונים פיזיולוגיים</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">משקל גוף:</span><input class="wt-input" type="number" id="bioWeight" placeholder="—" step="0.1" style="width:72px"><span class="wt-unit">ק"ג</span></div>
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">אחוזי שומן:</span><input class="wt-input" type="number" id="bioFat" placeholder="—" step="0.1" style="width:72px"><span class="wt-unit">%</span></div>
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">מסת שריר:</span><input class="wt-input" type="number" id="bioMuscle" placeholder="—" step="0.1" style="width:72px"><span class="wt-unit">ק"ג</span></div>
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">היקף מותן:</span><input class="wt-input" type="number" id="bioWaist" placeholder="—" step="0.5" style="width:72px"><span class="wt-unit">ס"מ</span></div>
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">היקף חזה:</span><input class="wt-input" type="number" id="bioChest" placeholder="—" step="0.5" style="width:72px"><span class="wt-unit">ס"מ</span></div>
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">היקף אגן:</span><input class="wt-input" type="number" id="bioHip" placeholder="—" step="0.5" style="width:72px"><span class="wt-unit">ס"מ</span></div>
+        <div class="wt-row"><span class="wt-label" style="min-width:110px">מסת שומן:</span><input class="wt-input" type="number" id="bioFatMass" placeholder="—" step="0.1" style="width:72px"><span class="wt-unit">ק"ג</span></div>
+        <button onclick="saveBioEntry()" style="padding:8px 16px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer;align-self:flex-end">שמור מדידה</button>
+        <div id="bioMsg" style="font-size:12px;color:var(--sage);text-align:right;min-height:16px"></div>
+      </div>
+    </div>
+
+    <!-- ייצוא JSON -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:10px">ייצוא נתונים</div>
+      <button onclick="exportData()" style="padding:8px 16px;background:var(--sage);color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">📥 הורידי JSON</button>
+    </div>
+
+    <!-- ניקוי נתונים -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:10px;color:var(--accent)">ניקוי נתונים</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="resetWeek()" style="padding:8px 16px;background:var(--s2);color:var(--text);border:1px solid var(--border);border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;cursor:pointer">איפוס שבוע נוכחי בלבד</button>
+        <button onclick="clearAllData()" style="padding:8px 16px;background:#c0392b;color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🗑 מחיקת כל הנתונים</button>
+      </div>
+    </div>
+
+    <button class="back-btn" onclick="goBack()" style="margin-top:8px">← חזרה</button>
+  </div>
+
+  <!-- ══ PROGRESS VIEW ══ -->
+  <div class="view" id="view-progress">
+    <div class="stats-tabs">
+      <button class="stats-tab active" onclick="switchTab('overview')">סקירה</button>
+      <button class="stats-tab" onclick="switchTab('exercises')">תרגילים</button>
+      <button class="stats-tab" onclick="switchTab('calories')">קלוריות</button>
+      <button class="stats-tab" onclick="switchTab('body')">גוף</button>
+    </div>
+
+    <div id="tab-overview"></div>
+    <div id="tab-exercises" style="display:none"></div>
+    <div id="tab-calories"  style="display:none"></div>
+    <div id="tab-body"      style="display:none"></div>
+
+
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════
+const WEEK_PLAN = [
+  { day:'ראשון',  type:'lower',   label:'כוח – גוף תחתון',  tag:'tag-lower',  key:'day1',  pilates:true  },
+  { day:'שני',    type:'karate',  label:'קראטה',             tag:'tag-karate', key:null,    karate:true   },
+  { day:'שלישי', type:'rest',    label:'מנוחה',             tag:'tag-rest',   key:null                   },
+  { day:'רביעי', type:'upper',   label:'כוח – גוף עליון',   tag:'tag-upper',  key:'day2',  pilates:true  },
+  { day:'חמישי', type:'karate',  label:'קראטה',             tag:'tag-karate', key:null,    karate:true   },
+  { day:'שישי',  type:'rest',    label:'מנוחה',             tag:'tag-rest',   key:null                   },
+  { day:'שבת',   type:'rest',    label:'מנוחה',             tag:'tag-rest',   key:null                   },
+];
+
+const TAG_LABEL = { lower:'🦵 רגליים', upper:'💪 עליון', karate:'🥋 קראטה', rest:'◦ מנוחה' };
+
+const WORKOUTS = {
+  day1: {
+    title:'יום 1 – גוף תחתון', duration:'~55 דקות',
+    focus:'רגליים, ישבן, פוסטורה',
+    exercises:[
+      { name:'חימום – חבל קפיצה',   sets:1, reps:'5 דקות',    eq:'חבל קפיצה',           desc:'קצב מתון ועולה — חמם ברכיים, מפרקי ירך וקרסוליים', warmup:true },
+      { name:'סקוואט עם קטלבל',     sets:3, reps:'12-15',     eq:'קטלבל 6-8 ק"ג',       desc:'גב ישר, ברכיים מעל כפות רגליים, ירדי עד ירכיים מקבילות לרצפה' },
+      { name:'Romanian Deadlift',   sets:3, reps:'12',         eq:'מוט EZ 7.5 ק"ג',      desc:'ציר על הירכיים, גב שטוח, המוט גולש על הרגליים — הרגישי מתיחה בהמסטרינג' },
+      { name:'לאנג׳ הליכה',         sets:3, reps:'10 כל רגל', eq:'מוט EZ על כתפיים',    desc:'פסיעה רחבה, ברך לא עוברת את הבוהן, גב ישר לאורך כל התנועה' },
+      { name:'גשר ישבן',            sets:3, reps:'15',         eq:'מוט EZ על האגן',      desc:'שכיבה על הגב, הרמת ירכיים עד קו ישר, הידקי גלוטסים בפסגה לשנייה' },
+      { name:'Plank',               sets:3, reps:'45 שניות',  eq:'משקל גוף',             desc:'גוף בקו ישר, בטן מהודקת — נשמי בקצב' },
+      { name:'Sumo Squat',          sets:3, reps:'12-15',     eq:'קטלבל 6-8 ק"ג',       desc:'רגליים רחבות, אצבעות 45° — מדגישה מפשעה וגלוטסים פנימיים' },
+    ]
+  },
+  day2: {
+    title:'יום 2 – גוף עליון', duration:'~50 דקות',
+    focus:'גב, חזה, כתפיים, ליבה',
+    exercises:[
+      { name:'חימום – מעגלי כתפיים',  sets:1, reps:'5 דקות',    eq:'משקל גוף',              desc:'מעגלי כתפיים קדימה ואחורה + קפיצות קלות לחימום', warmup:true },
+      { name:'EZ Bar Overhead Press', sets:3, reps:'10-12',     eq:'מוט EZ 7.5 ק"ג',       desc:'מרפקים קדימה, דחפי מעל הראש — הידיים לא ננעלות בפסגה' },
+      { name:'Chest Press בשכיבה',   sets:3, reps:'12-15',     eq:'דמבלים 3-4 ק"ג כל יד', desc:'גב שטוח, מרפקים ב-45° מהגוף, ירדי עד תחושת מתיחה בחזה' },
+      { name:'EZ Bar Bent Over Row',  sets:3, reps:'10-12',     eq:'מוט EZ 7.5 ק"ג',       desc:'כפוף 45°, משכי לכיוון הבטן — מרפקים צמודים לגוף' },
+      { name:'EZ Bar Pendlay Row',    sets:3, reps:'8-10',      eq:'מוט EZ 7.5 ק"ג',       desc:'המוט יורד לרצפה בין חזרות — גב שטוח ומקביל לרצפה, משיכה נפיצה' },
+      { name:'Plank',                 sets:3, reps:'45 שניות',  eq:'משקל גוף',              desc:'גוף בקו ישר, בטן מהודקת' },
+      { name:'Hollow Body Hold',      sets:3, reps:'35 שניות',  eq:'מוט EZ על החזה',        desc:'גב תחתון מודבק לרצפה, רגליים ב-45°, זרועות מושטות' },
+    ]
+  },
+  day3: {
+    title:'יום 3 – גוף תחתון 2', duration:'~40 דקות',
+    focus:'גיוון, שריפה, גלוטסים',
+    exercises:[
+      { name:'Goblet Squat עם קטלבל', sets:3, reps:'15',         eq:'קטלבל 6-8 ק"ג',     desc:'קטלבל על החזה, ירדי עמוק ככל האפשר, ברכיים פתוחות החוצה' },
+      { name:'Step-up על כיסא',       sets:3, reps:'12 כל רגל', eq:'מוט EZ על כתפיים',  desc:'גב ישר, דחפי דרך העקב של הרגל העולה' },
+      { name:'Hip Thrust בגומייה',    sets:3, reps:'15-20',      eq:'גומייה + מוט EZ',   desc:'גב מונח על ספסל, אגן עד קו ישר, הידקי גלוטסים בפסגה' },
+      { name:'Lateral Lunge',         sets:3, reps:'10 כל צד',  eq:'מוט EZ על כתפיים',  desc:'פסיעה הצידה, ברך לא עוברת את הבוהן, הרגל הישרה נשארת ישרה' },
+      { name:'Calf Raise',            sets:3, reps:'20',          eq:'מוט EZ על כתפיים',  desc:'עמדי על קצה מדרגה, תנועה מלאה, עצרי שנייה בפסגה' },
+      { name:'Mountain Climbers',     sets:3, reps:'30 שניות',   eq:'משקל גוף',           desc:'קצב מהיר, גוף בקו ישר, ברכיים לחזה לסירוגין' },
+    ]
+  }
+};
+
+// ══════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════
+let S = {};
+let curKey = null;
+let modalEx = -1, modalSet = -1;
+let curTab = 'overview';
+
+function loadS() { try { S = JSON.parse(localStorage.getItem('zk2') || '{}'); } catch { S = {}; } }
+function saveS() { try { localStorage.setItem('zk2', JSON.stringify(S)); } catch {} }
+
+function weekKey() {
+  const d = new Date(), m = new Date(d);
+  m.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay()-1));
+  return 'wk_' + m.toISOString().slice(0,10);
+}
+function todayKey() { return new Date().toISOString().slice(0,10); }
+
+// ══════════════════════════════════════════════════════
+//  VIEW ROUTING
+// ══════════════════════════════════════════════════════
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  const idx = ['week','progress'].indexOf(name);
+  if (idx >= 0) document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  // settings has no nav highlight
+  if (name === 'progress') renderProgress();
+  if (name === 'settings') renderSettings();
+}
+
+function goBack() {
+  showView('week');
+  renderWeek();
+}
+
+// ══════════════════════════════════════════════════════
+//  WEEK VIEW
+// ══════════════════════════════════════════════════════
+function renderWeek() {
+  const grid = document.getElementById('weekGrid');
+  const done = S[weekKey()]?.done || [];
+  grid.innerHTML = '';
+
+  WEEK_PLAN.forEach((d, i) => {
+    const isDone = done.includes(i);
+    const isRest = d.type === 'rest' && !d.karate;
+    const el = document.createElement('div');
+    el.className = 'day-card' + (isRest ? ' rest' : ' clickable') + (isDone ? ' done' : '');
+    const pilatesTag = d.pilates
+      ? '<span class="day-tag" style="background:rgba(90,128,80,0.12);color:var(--sage);margin-top:5px;display:inline-block;cursor:pointer" id="plt-' + i + '">🧘 פילאטיס</span>'
+      : '';
+    el.innerHTML =
+      '<div class="day-pip">✓</div>' +
+      '<div class="day-name">' + d.day + '</div>' +
+      '<div class="day-label">' + d.label + '</div>' +
+      '<span class="day-tag ' + d.tag + '">' + (TAG_LABEL[d.type]||'') + '</span>' +
+      pilatesTag;
+    if (!isRest && d.key) el.onclick = () => openWorkout(d.key, i);
+    if (d.karate) el.onclick = () => openActivity('karate', i);
+    grid.appendChild(el);
+    if (d.pilates) {
+      const pt = document.getElementById('plt-' + i);
+      if (pt) pt.onclick = (e) => { e.stopPropagation(); openActivity('pilates', i); };
+    }
+  });
+
+  // Summary
+  document.getElementById('sumWo').textContent  = done.length;
+  document.getElementById('sumStr').textContent = S.streak || 0;
+
+  // Weekly volume from history
+  const wk = weekKey().replace('wk_', '');
+  const wkEnd = new Date(new Date(wk).getTime() + 6*864e5).toISOString().slice(0,10);
+  const vol = Object.entries(S.history || {})
+    .filter(([d]) => d >= wk && d <= wkEnd)
+    .flatMap(([,e]) => e)
+    .reduce((s,e) => s + (parseFloat(e.weight)||0)*(e.reps||0), 0);
+  document.getElementById('sumVol').textContent = Math.round(vol);
+}
+
+// ══════════════════════════════════════════════════════
+//  WORKOUT VIEW
+// ══════════════════════════════════════════════════════
+function openWorkout(key, dayIdx) {
+  curKey = key;
+  S._start = Date.now();
+  const w = WORKOUTS[key];
+  const sk = key + '_s';
+  if (!S[sk]) S[sk] = {};
+
+  // Hero card
+  document.getElementById('woCard').innerHTML = `
+    <div class="wo-title">${w.title}</div>
+    <div class="wo-pills">
+      <span class="wo-pill">⏱ ${w.duration}</span>
+      <span class="wo-pill">🎯 ${w.focus}</span>
+      <span class="wo-pill">💪 ${w.exercises.filter(e=>!e.warmup).length} תרגילים</span>
+    </div>
+    <div class="prog-bar-wrap"><div class="prog-bar-fill" id="progFill" style="width:0%"></div></div>`;
+
+  document.getElementById('finishBanner').classList.remove('show');
+
+  // Build exercise cards
+  const list = document.getElementById('exList');
+  list.innerHTML = '';
+  w.exercises.forEach((ex, i) => buildExCard(ex, i, sk, dayIdx, list));
+
+  // Open first non-warmup
+  toggleEx(1);
+  showView('workout');
+}
+
+function buildExCard(ex, i, sk, dayIdx, list) {
+  const sess = S[sk]?.[i] || { sets:0, done:false, setData:{} };
+  const savedW = S.weights?.[ex.name] || '';
+
+  const card = document.createElement('div');
+  card.id = 'exc-' + i;
+  card.className = 'ex-card' + (sess.done ? ' ex-done' : '');
+
+  // Sets html
+  let setsHtml = '';
+  for (let s=0; s<ex.sets; s++) {
+    const cls = s < sess.sets ? 's-done' : s === sess.sets ? 's-next' : '';
+    const data = sess.setData?.[s];
+    const isTimer = !!ex.timer;
+    const subLbl = data && s < sess.sets ? (isTimer ? data.time+'"' : data.reps+'×') : (s+1);
+    setsHtml += `<div class="set-dot ${cls}" id="sd-${i}-${s}" onclick="tapSet(${i},${s})">${subLbl}</div>`;
+  }
+
+  const wtHtml = ex.warmup ? '' : `
+    <div class="wt-row">
+      <span class="wt-label">משקל:</span>
+      <input class="wt-input" type="number" step="0.5" value="${savedW}" placeholder="—"
+        onchange="saveWeight('${ex.name.replace(/'/g,"\\'")}',this.value)">
+      <span class="wt-unit">ק"ג</span>
+      ${savedW ? `<span class="wt-prev">קודם: <b>${savedW}</b></span>` : ''}
+    </div>`;
+
+  const tmHtml = '';
+
+  card.innerHTML = `
+    <div class="ex-head" onclick="toggleEx(${i})">
+      <div class="ex-num" id="exn-${i}">${sess.done ? '✓' : i+1}</div>
+      <div class="ex-info">
+        <div class="ex-name">${ex.name}</div>
+        <div class="ex-chips">
+          <span class="ex-chip">${ex.sets} × ${ex.reps}</span>
+          <span class="ex-chip">${ex.eq}</span>
+        </div>
+      </div>
+      <div class="ex-chevron">▾</div>
+    </div>
+    <div class="ex-body">
+      <div class="ex-desc">${ex.desc}</div>
+      ${wtHtml}
+      <div class="sets-lbl">לחצי על סט לסמן ✓</div>
+      <div class="sets-row" id="sr-${i}">${setsHtml}</div>
+      <button class="done-btn" id="db-${i}" onclick="toggleDone(${i},${dayIdx})">
+        ${sess.done ? '✓ הושלם' : 'סמני כהושלם'}
+      </button>
+    </div>`;
+  list.appendChild(card);
+}
+
+function toggleEx(i) {
+  document.getElementById('exc-' + i)?.classList.toggle('ex-open');
+}
+
+// ── SET LOGGING ──
+function tapSet(ei, si) {
+  const sk = curKey + '_s';
+  if (!S[sk]) S[sk] = {};
+  if (!S[sk][ei]) S[sk][ei] = { sets:0, done:false, setData:{} };
+  if (!S[sk][ei].setData) S[sk][ei].setData = {};
+
+  // Undo if already done
+  if (si < S[sk][ei].sets) {
+    S[sk][ei].sets = si;
+    delete S[sk][ei].setData[si];
+    saveS(); refreshSets(ei); return;
+  }
+
+  // Open modal
+  const ex = WORKOUTS[curKey].exercises[ei];
+  modalEx = ei; modalSet = si;
+  const prev = S[sk][ei].setData[si];
+  document.getElementById('modalTitle').textContent = ex.name;
+  document.getElementById('modalSub').textContent   = `סט ${si+1} מתוך ${ex.sets}`;
+  document.getElementById('modalLabel').textContent = 'חזרות בפועל';
+  document.getElementById('modalInput').value = prev?.reps || '';
+  document.getElementById('modalInput').placeholder = ex.reps.toString().split('-')[0];
+  document.getElementById('setModal').classList.add('show');
+  setTimeout(() => document.getElementById('modalInput')?.focus(), 120);
+}
+
+function confirmSet() {
+  const val = parseInt(document.getElementById('modalInput').value);
+  if (!val || val < 1) { closeModal(); return; }
+
+  const sk = curKey + '_s';
+  const ex = WORKOUTS[curKey].exercises[modalEx];
+  const w = parseFloat(S.weights?.[ex.name]) || 0;
+
+  S[sk][modalEx].setData[modalSet] = { reps:val };
+  S[sk][modalEx].sets = modalSet + 1;
+  S.totalSets = (S.totalSets||0) + 1;
+
+  // Log to history
+  if (!S.history) S.history = {};
+  const td = todayKey();
+  if (!S.history[td]) S.history[td] = [];
+  S.history[td].push({
+    workout: curKey, exercise: ex.name, set: modalSet+1,
+    weight: w || null,
+    reps:val,
+    ts: Date.now()
+  });
+
+  saveS();
+  refreshSets(modalEx);
+  updateProgress();
+  closeModal();
+
+}
+
+function closeModal() {
+  document.getElementById('setModal').classList.remove('show');
+  modalEx = -1; modalSet = -1;
+}
+
+function refreshSets(ei) {
+  const sk = curKey + '_s';
+  const sess = S[sk]?.[ei] || { sets:0, setData:{} };
+  const ex = WORKOUTS[curKey].exercises[ei];
+  const row = document.getElementById('sr-' + ei);
+  if (!row) return;
+  for (let s=0; s<ex.sets; s++) {
+    const dot = document.getElementById(`sd-${ei}-${s}`);
+    if (!dot) continue;
+    const isDone = s < sess.sets;
+    const isNext = s === sess.sets;
+    dot.className = 'set-dot' + (isDone ? ' s-done' : isNext ? ' s-next' : '');
+    const data = sess.setData?.[s];
+    dot.textContent = data && isDone ? data.reps+'×' : (s+1);
+  }
+}
+
+function updateProgress() {
+  const sk = curKey + '_s';
+  const exs = WORKOUTS[curKey].exercises;
+  const doneCount = exs.filter((_,i) => S[sk]?.[i]?.done).length;
+  const pct = Math.round(doneCount/exs.length*100);
+  const fill = document.getElementById('progFill');
+  if (fill) fill.style.width = pct+'%';
+}
+
+function toggleDone(ei, dayIdx) {
+  const sk = curKey + '_s';
+  if (!S[sk]) S[sk] = {};
+  if (!S[sk][ei]) S[sk][ei] = { sets:0, done:false, setData:{} };
+  S[sk][ei].done = !S[sk][ei].done;
+
+  const card = document.getElementById('exc-' + ei);
+  card.classList.toggle('ex-done', S[sk][ei].done);
+  document.getElementById('db-' + ei).textContent = S[sk][ei].done ? '✓ הושלם' : 'סמני כהושלם';
+  document.getElementById('exn-' + ei).textContent = S[sk][ei].done ? '✓' : ei+1;
+
+  updateProgress();
+
+  // Check if all done
+  const allDone = WORKOUTS[curKey].exercises.every((_,i) => S[sk]?.[i]?.done);
+  if (allDone) {
+    markDayDone(dayIdx);
+    const b = document.getElementById('finishBanner');
+    b.classList.add('show');
+    document.getElementById('finishSub').textContent =
+      `${WORKOUTS[curKey].exercises.length} תרגילים • ${WORKOUTS[curKey].duration}`;
+    b.scrollIntoView({ behavior:'smooth' });
+  }
+  saveS();
+}
+
+function markDayDone(idx) {
+  const wk = weekKey();
+  if (!S[wk]) S[wk] = { done:[] };
+  if (!S[wk].done.includes(idx)) {
+    S[wk].done.push(idx);
+    S.totalWorkouts = (S.totalWorkouts||0) + 1;
+    S.streak = (S.streak||0) + 1;
+    // Track duration
+    if (S._start) {
+      const min = Math.round((Date.now()-S._start)/60000);
+      if (!S.durations) S.durations = {};
+      S.durations[todayKey()] = min;
+    }
+    saveS();
+  }
+}
+
+function saveWeight(name, val) {
+  if (!S.weights) S.weights = {};
+  S.weights[name] = val;
+  saveS();
+}
+
+
+
+// ══════════════════════════════════════════════════════
+//  PROGRESS VIEW
+// ══════════════════════════════════════════════════════
+function switchTab(tab) {
+  curTab = tab;
+  ['overview','exercises','calories'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.stats-tab').forEach((b,i) => {
+    b.classList.toggle('active', ['overview','exercises','calories'][i]===tab);
+  });
+  renderTab(tab);
+}
+
+function renderProgress() { renderTab(curTab); }
+function renderTab(tab) {
+  if (tab==='overview')  renderOverview();
+  else if (tab==='exercises') renderExercises();
+  else if (tab==='calories') renderCalories();
+  else if (tab==='body') renderBody();
+}
+
+function allEntries() { return Object.values(S.history||{}).flat(); }
+
+function renderOverview() {
+  const entries = allEntries();
+  const now = new Date();
+  const vol = entries.reduce((s,e)=>s+(parseFloat(e.weight)||0)*(e.reps||0),0);
+
+  const durVals = Object.values(S.durations||{});
+  const avgDur  = durVals.length ? Math.round(durVals.reduce((a,b)=>a+b,0)/durVals.length) : null;
+
+  const wkStart = (() => { const d=new Date(),m=new Date(d); m.setDate(d.getDate()-(d.getDay()===0?6:d.getDay()-1)); return m.toISOString().slice(0,10); })();
+  const wkEnd   = new Date(new Date(wkStart).getTime()+6*864e5).toISOString().slice(0,10);
+  const wkHistDays = Object.keys(S.history||{}).filter(d=>d>=wkStart&&d<=wkEnd).length;
+  const wkActDaysOv= Object.keys(S.actLog||{}).filter(d=>d>=wkStart&&d<=wkEnd).length;
+  const wkWo = wkHistDays + wkActDaysOv;
+  const mnPfx   = now.toISOString().slice(0,7);
+  const mnWo    = Object.keys(S.history||{}).filter(d=>d.startsWith(mnPfx)).length;
+
+  const el = document.getElementById('tab-overview');
+  el.innerHTML = '';
+
+  const kpiData = [
+    { val: S.streak||0,                     lbl:'\u05e8\u05e6\u05e3 \u05d9\u05de\u05d9\u05dd \ud83d\udd25', color:'var(--sage)'   },
+    { val: avgDur ? avgDur+"'" : '\u2014',  lbl:'\u05d6\u05de\u05df \u05de\u05de\u05d5\u05e6\u05e2 \u05dc\u05d0\u05d9\u05de\u05d5\u05df', color:'var(--dim)' },
+    { val: Math.round(vol).toLocaleString(), lbl:'\u05e0\u05e4\u05d7 \u05db\u05d5\u05dc\u05dc (\u05e7"\u05d2)', color:'var(--gold)', sub:'\u05de\u05e9\u05e7\u05dc \u00d7 \u05d7\u05d6\u05e8\u05d5\u05ea' },
+    { val: S.totalSets||0,                  lbl:'\u05e1\u05d8\u05d9\u05dd \u05d1\u05d5\u05e6\u05e2\u05d5',    color:'var(--dim)'    },
+    { val: wkWo,                            lbl:'\u05d0\u05d9\u05de\u05d5\u05e0\u05d9\u05dd \u05d4\u05e9\u05d1\u05d5\u05e2', color:'var(--accent)' },
+    { val: mnWo,                            lbl:'\u05d0\u05d9\u05de\u05d5\u05e0\u05d9\u05dd \u05d4\u05d7\u05d5\u05d3\u05e9', color:'var(--accent)' },
+  ];
+
+  const grid = document.createElement('div');
+  grid.className = 'kpi-grid';
+  kpiData.forEach(k => {
+    grid.innerHTML +=
+      '<div class="kpi-card">' +
+        '<div class="kpi-val" style="color:' + k.color + '">' + k.val + '</div>' +
+        '<div class="kpi-lbl">' + k.lbl + '</div>' +
+        (k.sub ? '<div class="kpi-sub">' + k.sub + '</div>' : '') +
+      '</div>';
+  });
+  el.appendChild(grid);
+
+
+}
+function renderExercises() {
+  const el = document.getElementById('tab-exercises');
+  el.innerHTML = '';
+  const entries = allEntries();
+
+  // Add karate + pilates from actLog
+  const actEntries = [];
+  Object.entries(S.actLog||{}).forEach(([date, dayLog]) => {
+    Object.values(dayLog).forEach(e => {
+      actEntries.push({ ...e, date, exercise: e.type === 'karate' ? 'קראטה' : 'פילאטיס', ts: e.ts||Date.now() });
+    });
+  });
+
+  const allEx = [...entries, ...actEntries];
+  if (!allEx.length) {
+    el.innerHTML = '<div style="color:var(--dim);text-align:center;padding:24px;font-size:13px">עדיין אין נתונים 🌱</div>';
+    return;
+  }
+  const byEx = {};
+  allEx.forEach(e => { if(!byEx[e.exercise]) byEx[e.exercise]=[]; byEx[e.exercise].push(e); });
+  Object.entries(byEx).forEach(([name, exEntries]) => {
+    const isActivity = name === 'קראטה' || name === 'פילאטיס';
+    const lastDate = exEntries[exEntries.length-1]?.ts
+      ? new Date(exEntries[exEntries.length-1].ts).toLocaleDateString('he-IL') : '';
+    const card = document.createElement('div');
+    card.className = 'ex-stat-card';
+
+    if (isActivity) {
+      const durs = exEntries.map(e=>e.dur).filter(Boolean);
+      const cals = exEntries.map(e=>e.cal).filter(Boolean);
+      const avgDur = durs.length ? Math.round(durs.reduce((a,b)=>a+b,0)/durs.length) : null;
+      const totalCal = cals.reduce((a,b)=>a+b,0);
+      card.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">' +
+          '<div class="ex-stat-name" style="margin-bottom:0">' + name + '</div>' +
+          '<div style="font-size:10px;color:var(--dim)">' + lastDate + '</div>' +
+        '</div>' +
+        '<div class="ex-stat-row">' +
+          '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--accent)">' + exEntries.length + '</div><div class="ex-kpi-l">אימונים</div></div>' +
+          (avgDur ? '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--gold)">' + avgDur + "&#39;</div><div class='ex-kpi-l'>ממוצע</div></div>" : '') +
+          (totalCal ? '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--sage)">' + totalCal + '</div><div class="ex-kpi-l">קק"ל סה"כ</div></div>' : '') +
+        '</div>';
+    } else {
+      const vals  = exEntries.map(e=>e.reps).filter(Boolean);
+      const best  = vals.length ? Math.max(...vals) : 0;
+      const avg   = vals.length ? Math.round(vals.reduce((a,b)=>a+b,0)/vals.length) : 0;
+      const w     = parseFloat(S.weights?.[name])||0;
+      const vol   = exEntries.reduce((s,e)=>s+(parseFloat(e.weight)||w)*(e.reps||0),0);
+      const trend = vals.length>1?(vals[vals.length-1]>=vals[vals.length-2]?'↑':'↓'):'—';
+      const tColor= trend==='↑'?'var(--sage)':trend==='↓'?'var(--accent)':'var(--dim)';
+      card.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">' +
+          '<div class="ex-stat-name" style="margin-bottom:0">' + name + '</div>' +
+          '<div style="font-size:10px;color:var(--dim)">' + lastDate + '</div>' +
+        '</div>' +
+        '<div class="ex-stat-row">' +
+          (w ? '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--accent)">' + w + '</div><div class="ex-kpi-l">ק"ג</div></div>' : '') +
+          (best ? '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--gold)">' + best + '</div><div class="ex-kpi-l">חז׳ מקס</div></div>' : '') +
+          (avg  ? '<div class="ex-kpi"><div class="ex-kpi-v">' + avg + '</div><div class="ex-kpi-l">חז׳ ממוצע</div></div>' : '') +
+          (vol>0? '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--gold)">' + Math.round(vol) + '</div><div class="ex-kpi-l">נפח (ק"ג)</div></div>' : '') +
+          '<div class="ex-kpi"><div class="ex-kpi-v" style="color:' + tColor + '">' + trend + '</div><div class="ex-kpi-l">מגמה</div></div>' +
+          '<div class="ex-kpi"><div class="ex-kpi-v" style="color:var(--dim)">' + exEntries.length + '</div><div class="ex-kpi-l">סטים</div></div>' +
+        '</div>';
+    }
+    el.appendChild(card);
+  });
+}
+
+function renderCalories() {
+  const el = document.getElementById('tab-calories');
+  const cal = S.calories || {};
+  const dates = Object.keys(cal).sort();
+  const lastD = dates[dates.length-1];
+  const lastV = lastD ? cal[lastD] : null;
+
+  const now = new Date();
+  const wkStart = (() => {
+    const m = new Date(now);
+    m.setDate(now.getDate()-(now.getDay()===0?6:now.getDay()-1));
+    return m.toISOString().slice(0,10);
+  })();
+  const wkEnd   = new Date(new Date(wkStart).getTime()+6*864e5).toISOString().slice(0,10);
+  const mnPfx   = now.toISOString().slice(0,7);
+
+  const wkTotal  = dates.filter(d=>d>=wkStart&&d<=wkEnd).reduce((s,d)=>s+(cal[d]||0),0);
+  const mnTotal  = dates.filter(d=>d.startsWith(mnPfx)).reduce((s,d)=>s+(cal[d]||0),0);
+  // Avg = this week's total calories / this week's workout count
+  const wkWoDays = Object.keys(S.history||{}).filter(d=>d>=wkStart&&d<=wkEnd).length;
+  const wkActDays= Object.keys(S.actLog||{}).filter(d=>d>=wkStart&&d<=wkEnd).length;
+  const wkTotal_wo = wkWoDays + wkActDays;
+  const avg = wkTotal_wo > 0 ? Math.round(wkTotal / wkTotal_wo) : 0;
+
+  el.innerHTML =
+    '<div class="kpi-grid">' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'   + (lastV||'—') + '</div><div class="kpi-lbl">אימון אחרון' + (lastD?' ('+lastD.slice(5).replace('-','/')+')':'') + '</div></div>' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--accent)">' + (wkTotal||'—') + '</div><div class="kpi-lbl">שבוע זה</div></div>' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--sage)">'   + (mnTotal||'—') + '</div><div class="kpi-lbl">החודש</div></div>' +
+      '<div class="kpi-card"><div class="kpi-val" style="color:var(--dim)">'    + (avg||'—')    + '</div><div class="kpi-lbl">ממוצע לאימון (שבוע)</div></div>' +
+    '</div>';
+}
+
+function resetWeek() {
+  if (!confirm('לאפס את סימוני השבוע הנוכחי?\nהנתונים ההיסטוריים נשמרים.')) return;
+  const wk = weekKey();
+  delete S[wk];
+  // Reset session data for current workouts only (keep history intact)
+  Object.keys(S).forEach(k => { if (k.endsWith('_s')) delete S[k]; });
+  saveS();
+  renderWeek();
+}
+
+function updateStreak() {
+  const td = todayKey();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yd = yesterday.toISOString().slice(0,10);
+  const lastWo = S._lastWorkoutDate;
+  if (!lastWo || lastWo === td) {
+    // same day or first ever — just record
+  } else if (lastWo === yd) {
+    // consecutive day
+    S.streak = (S.streak||0) + 1;
+  } else {
+    // gap — reset streak
+    S.streak = 1;
+  }
+  if (!lastWo || lastWo !== td) {
+    S._lastWorkoutDate = td;
+    if (!S.streak) S.streak = 1;
+  }
+}
+
+function autoResetWeek() {
+  // Auto-reset: if stored week key differs from current, clear done flags silently
+  const stored = S._lastWeek;
+  const current = weekKey();
+  if (stored && stored !== current) {
+    // Archive old week session data (keep history)
+    Object.keys(S).forEach(k => { if (k.endsWith('_s')) delete S[k]; });
+    delete S[stored];
+  }
+  S._lastWeek = current;
+  saveS();
+}
+
+// ══════════════════════════════════════════════════════
+//  ACTIVITY LOG (קראטה / פילאטיס / כוח)
+// ══════════════════════════════════════════════════════
+const ACTIVITY_META = {
+  karate:  { icon:'🥋', title:'אימון קראטה',   markDay:true  },
+  pilates: { icon:'🧘', title:'אימון פילאטיס',  markDay:false },
+};
+let curAct = { type:'', dayIdx:-1 };
+
+function openActivity(type, dayIdx) {
+  curAct = { type, dayIdx };
+  const meta = ACTIVITY_META[type];
+  const td  = todayKey();
+  const key = type + '_' + dayIdx;
+  const prev = S.actLog?.[td]?.[key];
+  document.getElementById('actDur').value  = prev?.dur  || '';
+  document.getElementById('actCal').value  = prev?.cal  || '';
+  document.getElementById('actNote').value = prev?.note || '';
+  document.getElementById('actHeader').innerHTML =
+    '<div class="wo-title">' + meta.icon + ' ' + meta.title + '</div>' +
+    '<div class="wo-pills"><span class="wo-pill">רשמי פרטי האימון</span></div>';
+  const done = S[weekKey()]?.done || [];
+  document.getElementById('actSaveBtn').textContent =
+    done.includes(dayIdx) && meta.markDay ? '✓ עדכני אימון' : '✓ שמור אימון';
+  showView('activity');
+}
+
+function saveActivity() {
+  const dur  = parseInt(document.getElementById('actDur').value)  || null;
+  const cal  = parseInt(document.getElementById('actCal').value)  || null;
+  const note = document.getElementById('actNote').value || '';
+  const { type, dayIdx } = curAct;
+  const meta = ACTIVITY_META[type];
+  const td   = todayKey();
+  const key  = type + '_' + dayIdx;
+
+  if (!S.actLog) S.actLog = {};
+  if (!S.actLog[td]) S.actLog[td] = {};
+  S.actLog[td][key] = { type, dur, cal, note, ts: Date.now() };
+
+  if (cal) { if (!S.calories)  S.calories  = {}; S.calories[td]  = (S.calories[td]||0) + cal; }
+  if (dur) { if (!S.durations) S.durations = {}; S.durations[td] = dur; }
+
+  if (!S.history) S.history = {};
+  if (!S.history[td]) S.history[td] = [];
+  S.history[td].push({ workout:type, exercise:meta.title, dur, cal, ts:Date.now() });
+
+  if (meta.markDay && dayIdx >= 0) {
+    const wk = weekKey();
+    if (!S[wk]) S[wk] = { done:[] };
+    if (!S[wk].done.includes(dayIdx)) {
+      S[wk].done.push(dayIdx);
+      S.totalWorkouts = (S.totalWorkouts||0) + 1;
+      updateStreak();
+    }
+  }
+
+  saveS();
+  document.getElementById('actSaveBtn').textContent = '✓ נשמר!';
+  setTimeout(() => goBack(), 700);
+}
+
+function saveWoExtras() {
+  const dur = parseInt(document.getElementById('woDur')?.value) || null;
+  const cal = parseInt(document.getElementById('woCal')?.value) || null;
+  const td  = todayKey();
+  if (dur) { if (!S.durations) S.durations = {}; S.durations[td] = dur; }
+  if (cal) { if (!S.calories)  S.calories  = {}; S.calories[td]  = cal; }
+  saveS();
+  const btn = document.getElementById('woSaveBtn');
+  if (btn) { btn.textContent = '✓ נשמר'; btn.style.background = 'var(--sage)'; }
+}
+
+
+// BODY STATS
+function saveBioEntry() {
+  const td = todayKey();
+  const weight  = parseFloat(document.getElementById('bioWeight').value)  || null;
+  const fat     = parseFloat(document.getElementById('bioFat').value)     || null;
+  const muscle  = parseFloat(document.getElementById('bioMuscle').value)  || null;
+  const waist   = parseFloat(document.getElementById('bioWaist').value)   || null;
+  const chest   = parseFloat(document.getElementById('bioChest').value)   || null;
+  const hip     = parseFloat(document.getElementById('bioHip').value)     || null;
+  const fatMass = parseFloat(document.getElementById('bioFatMass').value) || null;
+  if (!weight && !fat && !muscle && !waist && !chest && !hip && !fatMass) return;
+  if (!S.body) S.body = {};
+  S.body[td] = { weight, fat, muscle, waist, chest, hip, fatMass, ts: Date.now() };
+  saveS();
+  const msg = document.getElementById('bioMsg');
+  if (msg) { msg.textContent = '✓ נשמר'; setTimeout(() => { msg.textContent=''; }, 2000); }
+}
+
+function renderBody() {
+  const el = document.getElementById('tab-body');
+  el.innerHTML = '';
+  const body = S.body || {};
+  const dates = Object.keys(body).sort();
+  if (!dates.length) {
+    el.innerHTML = '<div style="color:var(--dim);text-align:center;padding:32px;font-size:13px">עדיין אין מדידות 🌱<br><small>הוסיפי מדידות בהגדרות ⚙️</small></div>';
+    return;
+  }
+  const last  = body[dates[dates.length-1]];
+  const first = body[dates[0]];
+  let html = '<div class="kpi-grid" style="margin-bottom:14px">';
+  if (last.weight)  html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--accent)">' + last.weight  + '</div><div class="kpi-lbl">משקל (ק"ג)</div></div>';
+  if (last.fat)     html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'   + last.fat     + '</div><div class="kpi-lbl">שומן (%)</div></div>';
+  if (last.fatMass) html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--gold)">'   + last.fatMass + '</div><div class="kpi-lbl">מסת שומן (ק"ג)</div></div>';
+  if (last.muscle)  html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--sage)">'   + last.muscle  + '</div><div class="kpi-lbl">שריר (ק"ג)</div></div>';
+  if (last.waist)   html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--dim)">'    + last.waist   + '</div><div class="kpi-lbl">מותן (ס"מ)</div></div>';
+  if (last.chest)   html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--dim)">'    + last.chest   + '</div><div class="kpi-lbl">חזה (ס"מ)</div></div>';
+  if (last.hip)     html += '<div class="kpi-card"><div class="kpi-val" style="color:var(--dim)">'    + last.hip     + '</div><div class="kpi-lbl">אגן (ס"מ)</div></div>';
+  html += '</div>';
+  if (dates.length > 1) {
+    html += '<div class="chart-card" style="margin-bottom:12px"><div class="chart-title">שינוי מאז מדידה ראשונה (' + dates[0].slice(5).replace('-','/') + ')</div>';
+    const mkRow = (lbl, cur, prev, unit, goodDir) => {
+      if (!cur || !prev) return '';
+      const d = Math.round((cur-prev)*10)/10;
+      if (d===0) return '';
+      const isGood = goodDir==='down' ? d<0 : d>0;
+      return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="color:var(--dim)">' + lbl + '</span><span style="color:' + (isGood?'var(--sage)':'var(--accent)') + ';font-weight:700">' + (d>0?'+':'') + d + ' ' + unit + '</span></div>';
+    };
+    html += mkRow('משקל', last.weight, first.weight, 'ק"ג', 'down');
+    html += mkRow('שומן', last.fat, first.fat, '%', 'down');
+    html += mkRow('מסת שומן', last.fatMass, first.fatMass, 'ק"ג', 'down');
+    html += mkRow('שריר', last.muscle, first.muscle, 'ק"ג', 'up');
+    html += mkRow('מותן', last.waist, first.waist, 'ס"מ', 'down');
+    html += mkRow('חזה', last.chest, first.chest, 'ס"מ', 'down');
+    html += mkRow('אגן', last.hip, first.hip, 'ס"מ', 'down');
+    html += '</div>';
+  }
+  html += '<div class="chart-card"><div class="chart-title">היסטוריית מדידות</div>';
+  dates.slice().reverse().slice(0,8).forEach(d => {
+    const b = body[d];
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px"><span style="color:var(--dim)">' + d.slice(5).replace('-','/') + '</span><span style="display:flex;gap:8px">';
+    if (b.weight)  html += '<span>' + b.weight + ' ק"ג</span>';
+    if (b.fat)     html += '<span style="color:var(--gold)">' + b.fat + '%</span>';
+    if (b.fatMass) html += '<span style="color:var(--gold)">' + b.fatMass + ' שומן</span>';
+    if (b.muscle)  html += '<span style="color:var(--sage)">' + b.muscle + ' שריר</span>';
+    if (b.waist)   html += '<span style="color:var(--dim)">' + b.waist + ' מותן</span>';
+    if (b.chest)   html += '<span style="color:var(--dim)">' + b.chest + ' חזה</span>';
+    if (b.hip)     html += '<span style="color:var(--dim)">' + b.hip + ' אגן</span>';
+    html += '</span></div>';
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+// ══════════════════════════════════════════════════════
+//  SETTINGS
+// ══════════════════════════════════════════════════════
+function renderSettings() {
+  // Render weight editors for all exercises
+  const container = document.getElementById('settingsWeights');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Collect all exercise names from WORKOUTS
+  const exNames = [];
+  Object.values(WORKOUTS).forEach(wo => {
+    wo.exercises.forEach(ex => { if (!ex.warmup && !exNames.includes(ex.name)) exNames.push(ex.name); });
+  });
+
+  exNames.forEach(name => {
+    const cur = S.weights?.[name] || '';
+    const row = document.createElement('div');
+    row.className = 'wt-row';
+    row.style.marginBottom = '8px';
+    row.innerHTML =
+      '<span class="wt-label" style="min-width:130px;font-size:12px">' + name + '</span>' +
+      '<input class="wt-input" type="number" value="' + cur + '" placeholder="קג" style="width:64px" data-name="' + encodeURIComponent(name) + '" oninput="updateWeightEl(this)">' +
+      '<span class="wt-unit">ק"ג</span>';
+    container.appendChild(row);
+  });
+
+  // Pre-fill today's date in edit section
+  const td = todayKey();
+  document.getElementById('editDate').value = td;
+  document.getElementById('editCal').value = S.calories?.[td] || '';
+  document.getElementById('editDur').value = S.durations?.[td] || '';
+  const bioKeys = Object.keys(S.body||{}).sort();
+  const lb = bioKeys.length ? S.body[bioKeys[bioKeys.length-1]] : null;
+  if (lb) {
+    document.getElementById('bioWeight').value  = lb.weight  || '';
+    document.getElementById('bioFat').value     = lb.fat     || '';
+    document.getElementById('bioMuscle').value  = lb.muscle  || '';
+    document.getElementById('bioWaist').value   = lb.waist   || '';
+    document.getElementById('bioChest').value   = lb.chest   || '';
+    document.getElementById('bioHip').value     = lb.hip     || '';
+    document.getElementById('bioFatMass').value = lb.fatMass || '';
+  }
+}
+
+function updateWeightEl(input) {
+  const name = decodeURIComponent(input.dataset.name);
+  const v = parseFloat(input.value);
+  if (!S.weights) S.weights = {};
+  if (v > 0) S.weights[name] = v;
+  else delete S.weights[name];
+  saveS();
+}
+
+function saveEditedEntry() {
+  const date = document.getElementById('editDate').value;
+  const cal  = parseInt(document.getElementById('editCal').value) || null;
+  const dur  = parseInt(document.getElementById('editDur').value) || null;
+  if (!date) return;
+  if (cal) { if (!S.calories)  S.calories  = {}; S.calories[date]  = cal; }
+  if (dur) { if (!S.durations) S.durations = {}; S.durations[date] = dur; }
+  saveS();
+  const msg = document.getElementById('editMsg');
+  msg.textContent = '✓ נשמר לתאריך ' + date.slice(5).replace('-','/');
+  setTimeout(() => { msg.textContent = ''; }, 2000);
+}
+
+function exportData() {
+  const json = JSON.stringify(S, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'workout-data-' + todayKey() + '.json';
+  a.click();
+}
+
+function clearAllData() {
+  if (!confirm('למחוק את כל הנתונים לצמיתות?\nפעולה זו אינה הפיכה.')) return;
+  localStorage.removeItem('koach_s');
+  S = { history:{}, calories:{}, durations:{}, weights:{}, actLog:{}, streak:0, totalWorkouts:0, totalSets:0 };
+  saveS();
+  goBack();
+  renderWeek();
+}
+
+// ══════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════
+function init() {
+  loadS();
+  const DAYS   = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  const MONTHS = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  const now = new Date();
+  document.getElementById('hdrDate').textContent =
+    `${DAYS[now.getDay()]}, ${now.getDate()} ב${MONTHS[now.getMonth()]}`;
+  document.getElementById('hdrStreak').textContent = S.streak ? '🔥 ' + S.streak : '';
+  autoResetWeek();
+  renderWeek();
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+init();
+</script>
+</body>
+</html>
