@@ -440,23 +440,27 @@ html, body { height: 100%; font-family: 'Heebo', sans-serif; background: var(--b
   <div class="view" id="view-workout">
     <button class="back-btn" onclick="goBack()">← חזרה</button>
     <div class="wo-card" id="woCard"></div>
+    <!-- כרטיס משך וקלוריות — תמיד מוצג -->
+    <div style="background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:12px">
+      <div class="sec-title" style="margin-bottom:10px">פרטי האימון</div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="wt-row" style="gap:6px;margin-bottom:0">
+          <span class="wt-label">משך:</span>
+          <input class="wt-input" type="number" id="woDur" placeholder="55" style="width:64px">
+          <span class="wt-unit">דק'</span>
+        </div>
+        <div class="wt-row" style="gap:6px;margin-bottom:0">
+          <span class="wt-label">קלוריות:</span>
+          <input class="wt-input" type="number" id="woCal" placeholder="—" style="width:64px">
+          <span class="wt-unit">קק"ל</span>
+        </div>
+        <button onclick="saveWoExtras()" id="woSaveBtn" style="padding:7px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:12px;font-weight:700;cursor:pointer">שמור</button>
+      </div>
+    </div>
     <div class="finish-banner" id="finishBanner">
       <div class="finish-icon">🌿</div>
       <div class="finish-title">אימון הושלם!</div>
       <div class="finish-sub" id="finishSub"></div>
-      <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
-        <div class="wt-row" style="justify-content:center">
-          <span class="wt-label">משך האימון:</span>
-          <input class="wt-input" type="number" id="woDur" placeholder="55" style="width:70px">
-          <span class="wt-unit">דק'</span>
-        </div>
-        <div class="wt-row" style="justify-content:center">
-          <span class="wt-label">קלוריות:</span>
-          <input class="wt-input" type="number" id="woCal" placeholder="—" style="width:70px">
-          <span class="wt-unit">קק"ל</span>
-        </div>
-        <button onclick="saveWoExtras()" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'Heebo',sans-serif;font-size:13px;font-weight:700;cursor:pointer">שמור</button>
-      </div>
     </div>
     <div id="exList"></div>
   </div>
@@ -1177,7 +1181,7 @@ function saveWoExtras() {
   if (dur) { if (!S.durations) S.durations = {}; S.durations[td] = dur; }
   if (cal) { if (!S.calories)  S.calories  = {}; S.calories[td]  = cal; }
   saveS();
-  const btn = document.querySelector('#finishBanner button');
+  const btn = document.getElementById('woSaveBtn');
   if (btn) { btn.textContent = '✓ נשמר'; btn.style.background = 'var(--sage)'; }
 }
 
